@@ -24,6 +24,7 @@ This is how your custom_components directory should be:
 custom_components
 ├── omnik_inverter
 │   ├── __init__.py
+|   ├── const.py
 │   ├── manifest.json
 │   └── sensor.py
 ```
@@ -78,8 +79,8 @@ current power output: 1920, the energy generated today: 429 and the total energy
 The custom component basically requests the URL, looks for the _webData_ part and extracts the 
 values as the following sensors:
 - `sensor.solar_power_current` (Watt)
-- `sensor.solar_power_today` (kWh)
-- `sensor.solar_power_total` (kWh)
+- `sensor.solar_energy_today` (kWh)
+- `sensor.solar_energy_total` (kWh)
 
 ### My inverter doesn't show any output when I go to the URL.
 
