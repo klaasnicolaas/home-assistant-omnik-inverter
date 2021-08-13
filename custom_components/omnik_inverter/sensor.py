@@ -15,38 +15,36 @@ from datetime import datetime
 
 import voluptuous as vol
 
-from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntityDescription
 import homeassistant.helpers.config_validation as cv
-from homeassistant.const import CONF_HOST, POWER_WATT, ENERGY_KILO_WATT_HOUR
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_SCAN_INTERVAL
 from homeassistant.util import Throttle
 from homeassistant.util.json import load_json, save_json
 from homeassistant.helpers.entity import Entity
 from homeassistant.exceptions import HomeAssistantError
 
+from .const import (
+    CACHE_NAME,
+    CACHE_DAY_KEY,
+    CACHE_VALUE_KEY,
+    CONF_CACHE_POWER_TODAY,
+    CONF_USE_JSON,
+    JS_URL,
+    JSON_URL,
+    SENSOR_TYPES,
+)
+
 from urllib.request import urlopen
 
 import re
 
-VERSION = '1.5.4'
-
-CONF_CACHE_POWER_TODAY = 'cache_power_today'
-CONF_USE_JSON = 'use_json'
-CONF_SCAN_INTERVAL = 'scan_interval'
-CONF_NAME = 'name'
-
-JS_URL = 'http://{0}/js/status.js'
-JSON_URL = 'http://{0}/status.json?CMD=inv_query&rand={1}'
-CACHE_NAME = '.{0}{1}.json'
-CACHE_VALUE_KEY = "cache_value"
-CACHE_DAY_KEY = "cache_day"
-
 _LOGGER = logging.getLogger(__name__)
 
-SENSOR_TYPES = {
-    'powercurrent': ['{name} Current', POWER_WATT, 'mdi:weather-sunny'],
-    'powertoday': ['{name} Today', ENERGY_KILO_WATT_HOUR, 'mdi:flash'],
-    'powertotal': ['{name} Total', ENERGY_KILO_WATT_HOUR, 'mdi:chart-line'],
-}
+# SENSOR_TYPES = {
+#     'power_current': ['{name} Current', POWER_WATT, 'mdi:weather-sunny'],
+#     'energy_today': ['{name} Today', ENERGY_KILO_WATT_HOUR, 'mdi:flash'],
+#     'energy_total': ['{name} Total', ENERGY_KILO_WATT_HOUR, 'mdi:chart-line'],
+# }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_HOST): cv.string,
@@ -77,8 +75,9 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
     entities = []
 
-    for sensor_type in SENSOR_TYPES:
-        entities.append(OmnikInverterSensor(data, sensor_type, name, cache, cache_name))
+    for description in SENSOR_TYPES:
+        if description.key in data:
+            entities.append(OmnikInverterSensor(data, description, name, cache, cache_name))
 
     add_devices(entities)
 
@@ -172,14 +171,13 @@ class OmnikInverterJson(object):
 class OmnikInverterSensor(Entity):
     """Representation of a OmnikInverter sensor from the web data."""
 
-    def __init__(self, data, sensor_type, name, cache, cache_name):
+    def __init__(self, data, description: SensorEntityDescription, name, cache, cache_name):
         """Initialize the sensor."""
         self._data = data
-        self._type = sensor_type
-        self._name = SENSOR_TYPES[self._type][0].format(name=name)
-        self._unit_of_measurement = SENSOR_TYPES[self._type][1]
-        self._icon = SENSOR_TYPES[self._type][2]
+        self._type = description.key
+        self._name = description.name.format(name=name)
         self._state = None
+        self.entity_description = description
 
         # Set caching data.
         self._cache = cache
@@ -194,25 +192,25 @@ class OmnikInverterSensor(Entity):
         """Return the unique ID of the sensor."""
         return self._unique_id
 
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._name
+    # @property
+    # def name(self):
+    #     """Return the name of the sensor."""
+    #     return self._name
 
-    @property
-    def icon(self):
-        """Return the icon of the sensor."""
-        return self._icon
+    # @property
+    # def icon(self):
+    #     """Return the icon of the sensor."""
+    #     return self._icon
 
     @property
     def state(self):
         """Return the state of the sensor."""
         return self._state
 
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement of this entity."""
-        return self._unit_of_measurement
+    # @property
+    # def unit_of_measurement(self):
+    #     """Return the unit of measurement of this entity."""
+    #     return self._unit_of_measurement
 
     def update(self):
         """Get the latest data and use it to update our sensor state."""
@@ -225,10 +223,10 @@ class OmnikInverterSensor(Entity):
             _LOGGER.debug("No data found for %s", self._type)
             return False
 
-        if self._type == 'powercurrent':
+        if self._type == 'power_current':
             # Update the sensor state
             self._state = result[1]
-        elif self._type == 'powertoday':
+        elif self._type == 'energy_today':
             # Prepare the current actual values
             current_value = result[2]
             current_day = int(datetime.now().strftime('%Y%m%d'))
@@ -278,6 +276,6 @@ class OmnikInverterSensor(Entity):
 
             # Update the sensor state, divide by 100 to make it kWh
             self._state = (current_value / 100)
-        elif self._type == 'powertotal':
+        elif self._type == 'energy_total':
             # Update the sensor state, divide by 10 to make it kWh
             self._state = (result[3] / 10)
