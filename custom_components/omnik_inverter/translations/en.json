@@ -1,0 +1,13 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "data": {
+                    "name": "Name",
+                    "host": "Host"
+                },
+                "description": "Fill in the data of your solar panels."
+            }
+        }
+    }
+}

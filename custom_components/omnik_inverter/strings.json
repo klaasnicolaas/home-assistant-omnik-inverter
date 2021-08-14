@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Fill in the data of your solar panels.",
+        "data": {
+          "name": "[%key:common::config_flow::data::name%]",
+          "host": "[%key:common::config_flow::data::host%]"
+        }
+      }
+    }
+  }
+}
