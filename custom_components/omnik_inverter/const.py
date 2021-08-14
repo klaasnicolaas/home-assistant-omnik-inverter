@@ -28,25 +28,25 @@ CACHE_DAY_KEY = "cache_day"
 
 SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
     SensorEntityDescription(
-        key="power_current",
+        key="powercurrent",
         icon="mdi:weather-sunny",
-        name="{name} Current",
+        name="Power Current",
         device_class=DEVICE_CLASS_POWER,
         native_unit_of_measurement=POWER_WATT,
         state_class=STATE_CLASS_MEASUREMENT,
     ),
     SensorEntityDescription(
-        key="energy_today",
+        key="powertoday",
         icon="mdi:flash",
-        name="{name} Today",
+        name="Energy Today",
         device_class=DEVICE_CLASS_ENERGY,
         native_unit_of_measurement=ENERGY_KILO_WATT_HOUR,
         last_reset=dt.utc_from_timestamp(0),
     ),
     SensorEntityDescription(
-        key="energy_total",
+        key="powertotal",
         icon="mdi:chart-line",
-        name="{name} Total",
+        name="Energy Total",
         device_class=DEVICE_CLASS_ENERGY,
         native_unit_of_measurement=ENERGY_KILO_WATT_HOUR,
         last_reset=dt.utc_from_timestamp(0),

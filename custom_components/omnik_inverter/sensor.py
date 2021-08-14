@@ -76,8 +76,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     entities = []
 
     for description in SENSOR_TYPES:
-        if description.key in data:
-            entities.append(OmnikInverterSensor(data, description, name, cache, cache_name))
+        entities.append(OmnikInverterSensor(data, description, name, cache, cache_name))
 
     add_devices(entities)
 
@@ -175,7 +174,7 @@ class OmnikInverterSensor(Entity):
         """Initialize the sensor."""
         self._data = data
         self._type = description.key
-        self._name = description.name.format(name=name)
+        self._name = f"{name} - {description.name}"
         self._state = None
         self.entity_description = description
 
@@ -192,10 +191,10 @@ class OmnikInverterSensor(Entity):
         """Return the unique ID of the sensor."""
         return self._unique_id
 
-    # @property
-    # def name(self):
-    #     """Return the name of the sensor."""
-    #     return self._name
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
 
     # @property
     # def icon(self):
@@ -223,10 +222,10 @@ class OmnikInverterSensor(Entity):
             _LOGGER.debug("No data found for %s", self._type)
             return False
 
-        if self._type == 'power_current':
+        if self._type == 'powercurrent':
             # Update the sensor state
             self._state = result[1]
-        elif self._type == 'energy_today':
+        elif self._type == 'powertoday':
             # Prepare the current actual values
             current_value = result[2]
             current_day = int(datetime.now().strftime('%Y%m%d'))
@@ -276,6 +275,6 @@ class OmnikInverterSensor(Entity):
 
             # Update the sensor state, divide by 100 to make it kWh
             self._state = (current_value / 100)
-        elif self._type == 'energy_total':
+        elif self._type == 'powertotal':
             # Update the sensor state, divide by 10 to make it kWh
             self._state = (result[3] / 10)
